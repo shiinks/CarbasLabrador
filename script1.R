@@ -38,7 +38,7 @@ ggcorrplot(corr)
 # Cote nord
 envcn<-filter(env, Region == "Côte-Nord")
 # Select variables
-# Drop  Alcalinity, DIC, zoo biomass, NO3 and NH4, long/lat,region,lac
+# Drop  Alcalinity, DIC. (Correlated to conductivity), zoo biomass, NO3 and NH4, long/lat,region,lac
 envcn<-select(envcn, Site, SecchiDepth, MaxDepth, Temp,pH, Alcalinity,  Conductivity, DOmgL, AbundanceBact, ChlA, TP, TN, Iron, DOC)
 # Drop na
 envcn<-drop_na(envcn)
@@ -63,5 +63,3 @@ df <- select(envcb,SecchiDepth, MaxDepth, Temp,pH,  Conductivity, DOmgL, Abundan
 pca_res <- prcomp(df, scale. = TRUE)
 autoplot(pca_res,data= envcb,colour= 'Region',label=TRUE,loadings = TRUE, loadings.colour = 'blue',
          loadings.label = TRUE, loadings.label.size = 3)
-corr <- round(cor(df), 1)
-ggcorrplot(corr)
