@@ -5,6 +5,7 @@ library(ggplot2)
 library(ggcorrplot)
 
 # raw data
+raw<-read.csv("lakesUTF.csv", header = TRUE)
 raw<-read.csv("lakes.csv", header = TRUE)
 
 # select variables
