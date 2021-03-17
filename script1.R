@@ -6,7 +6,7 @@ library(ggcorrplot)
 
 # raw data
 raw<-read.csv("lakesUTF.csv", header = TRUE)
-raw<-read.csv("lakes.csv", header = TRUE)
+
 
 # select variables
 env<-select(raw, Site, Lac, LATITUDE, LONGITUDE, Region, SecchiDepth, MaxDepth, Temp, Conductivity, DOmgL, pH, Alcalinity, AbundanceBact,ZooBiomass, ChlA, TP, TN, NH4,NO3, Iron, DOC, DIC)
@@ -16,19 +16,44 @@ env[,5]<-as.factor(env[,5])
 # env<-drop_na(env)
 
 
+# Select variables
+# Drop Alcalinity, DIC. (Correlated to conductivity), NO3 and NH4, long/lat,region,lac
+env <- select(env, Site, pH, SecchiDepth, MaxDepth, Temp, Conductivity, DOmgL,  ChlA, TP, TN, Iron, DOC)
+# remove na
+env<-drop_na(env)
+#SecchiDepth,pH, MaxDepth, Temp, Conductivity, DOmgL, AbundanceBact,ZooBiomass,
+#Select data for analysis
+df <- select(env,SecchiDepth,pH, MaxDepth, Temp, Conductivity, DOmgL,  ChlA, TP, TN, Iron, DOC)
+# PCA
+
+
 #select Schefferville
 envlab<-filter(env, Region == "Schefferville")
 
 # Select variables
 # Drop Alcalinity, DIC. (Correlated to conductivity), NO3 and NH4, long/lat,region,lac
-envlab <- select(envlab, Site, pH, SecchiDepth, MaxDepth, Temp, Conductivity, DOmgL, AbundanceBact,ZooBiomass, ChlA, TP, TN, Iron, DOC)
+envlab <- select(envlab, Site, pH, SecchiDepth, MaxDepth, Temp, Conductivity, DOmgL,ChlA, TP, TN, Iron, DOC)
 # remove na
 envlab<-drop_na(envlab)
-
+#SecchiDepth,pH, MaxDepth, Temp, Conductivity, DOmgL, AbundanceBact,ZooBiomass,
 #Select data for analysis
-df <- select(envlab, SecchiDepth,pH, MaxDepth, Temp, Conductivity, DOmgL, AbundanceBact,ZooBiomass, ChlA, TP, TN, Iron, DOC)
+df <- select(envlab,SecchiDepth,pH, MaxDepth, Temp, Conductivity, DOmgL,   ChlA, TP, TN, Iron, DOC)
 # PCA
-pca_res <- prcomp(df, scale. = TRUE)
+options(scipen=999)
+
+pca<-princomp(df,cor=TRUE)
+screeplot(pca)
+pca$loadings
+summary(pca)
+
+princomp(data[,],cor=FALSE)
+pca <- princomp(data[,],cor=FALSE)
+pca$loadings
+> 0.5
+
+
+
+pca_res <- prcomp(df, scale = TRUE)
 autoplot(pca_res,data= envlab,label=TRUE,loadings = TRUE, loadings.colour = 'blue',
          loadings.label = TRUE, loadings.label.size = 3)
 # Correlations
@@ -64,3 +89,37 @@ df <- select(envcb,SecchiDepth, MaxDepth, Temp,pH,  Conductivity, DOmgL, Abundan
 pca_res <- prcomp(df, scale. = TRUE)
 autoplot(pca_res,data= envcb,colour= 'Region',label=TRUE,loadings = TRUE, loadings.colour = 'blue',
          loadings.label = TRUE, loadings.label.size = 3)
+
+
+#----------Hypothèse 1-------------------
+
+phyto <- select(raw, Iron, ChlA, TP, TN)
+mod <- with(phyto, glm(Iron ~ ChlA + TP +TN)) #lm ou glm donne même données
+summary(mod)
+#ChlA p = 0.0108
+#TP p = 0.9521
+#TN p = 0.0879
+
+plot1 <- plot(phyto$Iron ~ phyto$ChlA
+              , xlab = 'Concentration de fer'
+              , ylab = 'ChlA')
+plot2 <- plot(phyto$Iron ~ phyto$TP
+              , xlab = 'Concentration de fer'
+              , ylab = 'TP')
+plot3 <- plot(phyto$Iron ~ phyto$TN
+              , xlab = 'Concentration de fer'
+              , ylab = 'TN')
+#Pensez à une méthode pour bien présenter ces résultats
+#Pourquoi les concentrations de fer varient en x?
+
+#---------Hypothèse 2---------
+
+zoo <- select(raw, ZooBiomass, Iron)
+mod2 <- with(zoo, glm(Iron ~ ZooBiomass))
+summary(mod2)
+#ZooBiomass p = 0.271
+
+plot4 <- plot(zoo$Iron ~ zoo$ZooBiomass
+              , xlab = 'Concentration de fer'
+              , ylab = 'Biomasse du zooplancton')
+#Retirer les points à l'extrême droite?
