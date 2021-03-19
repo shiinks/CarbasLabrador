@@ -122,6 +122,19 @@ qqnorm(resid(mod))
 qqline(resid(mod)) #pas super
 #Va falloir modifier les données
 
+#Transformation des données (log)
+phyto$ChlA <- log(phyto$ChlA)
+#phyto$TP <- log(phyto$TP)
+#phyto$TN <- log(phyto$TN)
+#phyto$Iron <- log(phyto$Iron) #Si on fait la transformation pour TN et/ou Iron tu as un message d'erreur quand tu fais ton modèle après?
+               
+#Modèle avec données modifiées
+mod.log <- with(phyto, glm(ChlA ~ Iron + TP + TN )) 
+summary(mod.log)
+
+plot(fitted(mod.log), resid(mod.log)) #beaucoup mieux
+qqnorm(resid(mod.log))
+qqline(resid(mod.log)) #pas super....
 
 #---------Hypothèse 2---------
 
@@ -139,3 +152,15 @@ plot(fitted(mod2), resid(mod2)) #patron problématique
 qqnorm(resid(mod2))
 qqline(resid(mod2))
 #Va falloir modifier les données
+
+#Transformation des données (log)
+zoo$ZooBiomass <- log(zoo$ZooBiomass)
+
+#Modèle avec données modifiées
+mod2.log <- with(zoo, glm(ZooBiomass ~ Iron))
+
+
+plot(fitted(mod2), resid(mod2)) #Pire
+qqnorm(resid(mod2))
+qqline(resid(mod2)) #Pire
+#Il va falloir considérer autre chose qu'une transformation log ici
