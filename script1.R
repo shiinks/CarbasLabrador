@@ -94,32 +94,48 @@ autoplot(pca_res,data= envcb,colour= 'Region',label=TRUE,loadings = TRUE, loadin
 #----------Hypothèse 1-------------------
 
 phyto <- select(raw, Iron, ChlA, TP, TN)
-mod <- with(phyto, glm(Iron ~ ChlA + TP +TN)) #lm ou glm donne même données
+mod <- with(phyto, glm(ChlA ~ Iron + TP + TN )) #lm ou glm donne même données
 summary(mod)
-#ChlA p = 0.0108
-#TP p = 0.9521
-#TN p = 0.0879
+#Iron p = 0.0108
+#TP p = 3.34e-6
+#TN p = 5.06e-13
 
-plot1 <- plot(phyto$Iron ~ phyto$ChlA
+plot1 <- plot(phyto$ChlA ~ phyto$Iron
               , xlab = 'Concentration de fer'
               , ylab = 'ChlA')
-plot2 <- plot(phyto$Iron ~ phyto$TP
-              , xlab = 'Concentration de fer'
-              , ylab = 'TP')
-plot3 <- plot(phyto$Iron ~ phyto$TN
-              , xlab = 'Concentration de fer'
-              , ylab = 'TN')
+plot2 <- plot(phyto$ChlA ~ phyto$TP
+              , xlab = 'TP'
+              , ylab = 'ChlA')
+plot3 <- plot(phyto$ChlA ~ phyto$TN
+              , xlab = 'TN'
+              , ylab = 'ChlA')
 #Pensez à une méthode pour bien présenter ces résultats
 #Pourquoi les concentrations de fer varient en x?
+
+ChlA <- as.numeric(phyto$ChlA)
+TP <- as.numeric(phyto$TP)
+TN <- as.numeric(phyto$TN)
+Iron <- as.numeric(phyto$Iron)
+
+plot(fitted(mod), resid(mod)) #patron problématique
+qqnorm(resid(mod))
+qqline(resid(mod)) #pas super
+#Va falloir modifier les données
+
 
 #---------Hypothèse 2---------
 
 zoo <- select(raw, ZooBiomass, Iron)
-mod2 <- with(zoo, glm(Iron ~ ZooBiomass))
+mod2 <- with(zoo, glm(ZooBiomass ~ Iron))
 summary(mod2)
-#ZooBiomass p = 0.271
+#Iron p = 0.271
 
-plot4 <- plot(zoo$Iron ~ zoo$ZooBiomass
+plot4 <- plot(zoo$ZooBiomass ~ zoo$Iron
               , xlab = 'Concentration de fer'
               , ylab = 'Biomasse du zooplancton')
 #Retirer les points à l'extrême droite?
+
+plot(fitted(mod2), resid(mod2)) #patron problématique
+qqnorm(resid(mod2))
+qqline(resid(mod2))
+#Va falloir modifier les données
