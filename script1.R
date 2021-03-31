@@ -3,6 +3,13 @@ library(tidyr)
 library(ggfortify)
 library(ggplot2)
 library(ggcorrplot)
+library(vegan)
+library(mvpart)
+library(MVPARTwrap)
+library(rdaTest)
+library(labdsv)
+library(plyr)
+library(ggrepel)
 
 # raw data
 raw<-read.csv("lakesUTF.csv", header = TRUE)
@@ -24,9 +31,19 @@ env<-drop_na(env)
 #SecchiDepth,pH, MaxDepth, Temp, Conductivity, DOmgL, AbundanceBact,ZooBiomass,
 #Select data for analysis
 df <- select(env,SecchiDepth,pH, MaxDepth, Temp, Conductivity, DOmgL,  ChlA, TP, TN, Iron, DOC)
+
+
+
+#rda
+env<-select(raw,SecchiDepth,pH, MaxDepth, Temp, Conductivity, DOmgL, TP, TN, Iron, DOC,ZooBiomass,AbundanceBact,ChlA)
+env<-drop_na(env)
+y <- select(env,SecchiDepth,pH, MaxDepth, Temp, Conductivity, DOmgL, TP, TN, Iron, DOC)
+x<-select(env,ZooBiomass,AbundanceBact,ChlA)
+rda1=rda(x,y,scaling=TRUE)#RDA Analysis
+plot(rda1)
+
+
 # PCA
-
-
 #select Schefferville
 envlab<-filter(env, Region == "Schefferville")
 
@@ -94,6 +111,7 @@ autoplot(pca_res,data= envcb,colour= 'Region',label=TRUE,loadings = TRUE, loadin
 #----------Hypothèse 1-------------------
 
 phyto <- select(raw, Iron, ChlA, TP, TN)
+phyto <- drop_na(phyto)
 mod <- with(phyto, glm(ChlA ~ Iron + TP + TN )) #lm ou glm donne même données
 summary(mod)
 #Iron p = 0.0108
@@ -123,14 +141,17 @@ qqline(resid(mod)) #pas super
 #Va falloir modifier les données
 
 #Transformation des données (log)
-phyto$ChlA <- log(phyto$ChlA)
-#phyto$TP <- log(phyto$TP)
-#phyto$TN <- log(phyto$TN)
-#phyto$Iron <- log(phyto$Iron) #Si on fait la transformation pour TN et/ou Iron tu as un message d'erreur quand tu fais ton modèle après?
+phyto$ChlA <- log(phyto$ChlA+1)
+phyto$TP <- log(phyto$TP+1)
+phyto$TN <- log(phyto$TN+1)
+phyto$Iron <- log(phyto$Iron+1) #Si on fait la transformation pour TN et/ou Iron tu as un message d'erreur quand tu fais ton modèle après?
                
 #Modèle avec données modifiées
-mod.log <- with(phyto, glm(ChlA ~ Iron + TP + TN )) 
+mod.log <- with(phyto, lm(ChlA ~ Iron + TP + TN )) 
 summary(mod.log)
+
+#seuil 3 = trop grand
+vif(mod.log)
 
 plot(fitted(mod.log), resid(mod.log)) #beaucoup mieux
 qqnorm(resid(mod.log))
@@ -139,7 +160,8 @@ qqline(resid(mod.log)) #pas super....
 #---------Hypothèse 2---------
 
 zoo <- select(raw, ZooBiomass, Iron)
-mod2 <- with(zoo, glm(ZooBiomass ~ Iron))
+zoo<- drop_na(zoo)
+mod2 <- with(zoo, lm(ZooBiomass ~ Iron))
 summary(mod2)
 #Iron p = 0.271
 
@@ -155,12 +177,13 @@ qqline(resid(mod2))
 
 #Transformation des données (log)
 zoo$ZooBiomass <- log(zoo$ZooBiomass)
-
+zoo$Iron<- log(zoo$Iron+1)
 #Modèle avec données modifiées
 mod2.log <- with(zoo, glm(ZooBiomass ~ Iron))
-
+summary(mod2.log)
 
 plot(fitted(mod2), resid(mod2)) #Pire
 qqnorm(resid(mod2))
 qqline(resid(mod2)) #Pire
 #Il va falloir considérer autre chose qu'une transformation log ici
+
