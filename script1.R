@@ -10,6 +10,7 @@ library(rdaTest)
 library(labdsv)
 library(plyr)
 library(ggrepel)
+library(car)
 
 # raw data
 raw<-read.csv("lakesUTF.csv", header = TRUE)
@@ -147,12 +148,14 @@ phyto$TN <- log(phyto$TN+1)
 phyto$Iron <- log(phyto$Iron+1) #Si on fait la transformation pour TN et/ou Iron tu as un message d'erreur quand tu fais ton modèle après?
                
 #Modèle avec données modifiées
-mod.log <- with(phyto, lm(ChlA ~ Iron + TP + TN )) 
+mod.log <- with(phyto, lm((log(ChlA)+1) ~ Iron + TP + TN )) 
 summary(mod.log)
 
 #seuil 3 = trop grand
 vif(mod.log)
 
+par(mfrow=c(2,2))
+plot(mod.log)
 plot(fitted(mod.log), resid(mod.log)) #beaucoup mieux
 qqnorm(resid(mod.log))
 qqline(resid(mod.log)) #pas super....
@@ -164,24 +167,25 @@ phyto$ChlA <- exp(phyto$ChlA)
 #phyto$TN <- exp(phyto$TN)
 
 #Modèle avec transformation exponentielle
-mod.exp <- with(phyto2, lm(exp(ChlA) ~ Iron + TP + TN ))
+mod.exp <- with(phyto, lm(exp(ChlA) ~ Iron + TP + TN ))
 summary(mod.exp)
 
 par(mfrow=c(2,2))
-plot(fitted(mod.exp), resid(mod.exp)) 
-qqnorm(resid(mod.exp))
-qqline(resid(mod.exp))
 plot(mod.exp) #Vraiment pas bon
+plot(fitted(mod.exp), resid(mod.exp)) #beaucoup mieux
+qqnorm(resid(mod.exp))
+qqline(resid(mod.exp)) #pas super....
 
-phyto2 <- phyto[phyto$ChlA < 36,]
-max(phyto2$ChlA)
+max(phyto$ChlA)
+phyto2 <- phyto[phyto$ChlA < 11,]
+
 str(phyto)
-summary(phyto)
+summary(phyto2)
 #Transformation des données (sqrt)
 phyto$CHlA <- sqrt(phyto$ChlA)
 
 #Modèle avec transformation racine carrée
-mod.sqrt <- with(phyto, lm(ChlA ~ Iron + TP + TN))
+mod.sqrt <- with(phyto, lm(sqrt(ChlA) ~ Iron + TP + TN))
 summary(mod.sqrt)
 
 par(mfrow=c(2,2))
@@ -229,6 +233,8 @@ mod.test29 <- with(zoo, lm(ZooBiomass ~ Iron + Temp + ChlA + DOC))
 mod.test30 <- with(zoo, lm(ZooBiomass ~ Iron + Temp + ChlA))
 mod.test31 <- with(zoo, lm(ZooBiomass ~ Iron + Temp))
 mod.test32 <- with(zoo, lm(ZooBiomass ~ 1))
+mod.test33 <- with(zoo, lm(ZooBiomass ~ DOC + pH + Iron))
+mod.test34 <- with(zoo, lm(ZooBiomass ~ Iron + DOC + pH))
 AICc(mod.test1) #1478.68
 AICc(mod.test2) #1477.84
 AICc(mod.test3) #1478.28
@@ -260,9 +266,15 @@ AICc(mod.test28) #1478.58
 AICc(mod.test29) #1477.37
 AICc(mod.test30) #1478.166
 AICc(mod.test31) #1475.98
-AICc(mod.test32)
+AICc(mod.test32) #1400.815
+AICc(mod.test34) #1398
 listemodele <- list(mod.test1, mod.test2, mod.test3)
 aictab(listemodele)
+
+zoo <- select(raw, ZooBiomass, Iron)
+zoo<- drop_na(zoo)
+mod2 <- with(zoo, lm(log(ZooBiomass) ~ Iron + DOC + pH))
+summary(mod2)
 #Iron p = 0.271
 
 plot4 <- plot(zoo$ZooBiomass ~ zoo$Iron
@@ -274,6 +286,9 @@ plot(fitted(mod2), resid(mod2)) #patron problématique
 qqnorm(resid(mod2))
 qqline(resid(mod2))
 #Va falloir modifier les données
+
+par(mfrow=c(2,2))
+plot(mod2)
 
 #Transformation des données (log)
 zoo$ZooBiomass <- log(zoo$ZooBiomass)
