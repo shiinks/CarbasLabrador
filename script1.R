@@ -168,15 +168,16 @@ mod.exp <- with(phyto2, lm(exp(ChlA) ~ Iron + TP + TN ))
 summary(mod.exp)
 
 par(mfrow=c(2,2))
-plot(fitted(mod.exp), resid(mod.exp)) 
-qqnorm(resid(mod.exp))
-qqline(resid(mod.exp))
 plot(mod.exp) #Vraiment pas bon
+plot(fitted(mod.exp), resid(mod.exp)) #beaucoup mieux
+qqnorm(resid(mod.exp))
+qqline(resid(mod.exp)) #pas super....
 
-phyto2 <- phyto[phyto$ChlA < 36,]
-max(phyto2$ChlA)
+max(phyto$ChlA)
+phyto2 <- phyto[phyto$ChlA < 11,]
+
 str(phyto)
-summary(phyto)
+summary(phyto2)
 #Transformation des données (sqrt)
 phyto$CHlA <- sqrt(phyto$ChlA)
 
@@ -260,9 +261,14 @@ AICc(mod.test28) #1478.58
 AICc(mod.test29) #1477.37
 AICc(mod.test30) #1478.166
 AICc(mod.test31) #1475.98
-AICc(mod.test32)
+AICc(mod.test32) #1400.815
 listemodele <- list(mod.test1, mod.test2, mod.test3)
 aictab(listemodele)
+
+zoo <- select(raw, ZooBiomass, Iron)
+zoo<- drop_na(zoo)
+mod2 <- with(zoo, lm(ZooBiomass ~ Iron))
+summary(mod2)
 #Iron p = 0.271
 
 plot4 <- plot(zoo$ZooBiomass ~ zoo$Iron
