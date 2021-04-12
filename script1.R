@@ -267,13 +267,20 @@ AICc(mod.test29) #1477.37
 AICc(mod.test30) #1478.166
 AICc(mod.test31) #1475.98
 AICc(mod.test32) #1400.815
+<<<<<<< HEAD
 AICc(mod.test34) #1398
+=======
+>>>>>>> 5bba41df94b0b001334441bae71e3ce9b08c9280
 listemodele <- list(mod.test1, mod.test2, mod.test3)
 aictab(listemodele)
 
 zoo <- select(raw, ZooBiomass, Iron)
 zoo<- drop_na(zoo)
+<<<<<<< HEAD
 mod2 <- with(zoo, lm(log(ZooBiomass) ~ Iron + DOC + pH))
+=======
+mod2 <- with(zoo, lm(ZooBiomass ~ Iron))
+>>>>>>> 5bba41df94b0b001334441bae71e3ce9b08c9280
 summary(mod2)
 #Iron p = 0.271
 
